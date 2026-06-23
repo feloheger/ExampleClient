@@ -160,6 +160,18 @@ public class ExampleClientMod implements ClientModInitializer {
                 }
             }
         });
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            while (Freecam.toggleKey.wasPressed()) {
+                Freecam freecam = Freecam.getInstance();
+                if (freecam != null) {
+                    if (freecam.isEnabled()) {
+                        freecam.onDisable();
+                    } else {
+                        freecam.onEnable();
+                    }
+                }
+            }
+        });
 
         LOGGER.info("[ExampleClient] {} Module geladen.", MODULES.size());
     }

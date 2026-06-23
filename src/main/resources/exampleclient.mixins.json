@@ -5,7 +5,10 @@
 	"client": [
 
 		"ClientPlayerEntityMixin",
-		"GameRendererMixin"
+		"GameRendererMixin",
+		"ClientPlayNetworkHandlerMixin",
+		"ICameraAccessor",
+		"CameraSubmersionMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
