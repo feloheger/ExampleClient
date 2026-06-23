@@ -75,51 +75,43 @@ public class BlockSelectorScreen extends Screen {
         int listStartY = 30 + SEARCH_H + 6;
         int listH = height - listStartY - 10;
         int visibleRows = listH / ROW_HEIGHT;
+        int end = Math.min(scrollOffset + visibleRows, filtered.size());
 
-        // 1. Titel
         String title = "Block-ESP — Blöcke auswählen";
         ctx.drawText(this.textRenderer, title,
                 (width - this.textRenderer.getWidth(title)) / 2, 10, 0xFFFFFFFF, true);
 
-        ctx.fill(panelX - PADDING, listStartY - 4,
-                panelX + PANEL_WIDTH + PADDING, listStartY + listH + 4,
-                0xFF1A1A1A); // voll opak
-
-        // 3. Zeilen (fill zuerst, dann Text)
-        int end = Math.min(scrollOffset + visibleRows, filtered.size());
         for (int i = scrollOffset; i < end; i++) {
             Block block = filtered.get(i);
             int rowY = listStartY + (i - scrollOffset) * ROW_HEIGHT;
             boolean active = setting.contains(block);
+            int btnX = panelX + PANEL_WIDTH - 18;
 
-            // Hover-Hintergrund
-            if (mouseX >= panelX && mouseX <= panelX + PANEL_WIDTH - 22
-                    && mouseY >= rowY && mouseY < rowY + ROW_HEIGHT) {
+            // Zeilen-Hintergrund NUR für diese eine Zeile, direkt vor ihrem Text
+            ctx.fill(panelX - PADDING, rowY - 2, panelX + PANEL_WIDTH + PADDING, rowY + ROW_HEIGHT - 2, 0xFF1A1A1A);
+
+            boolean hoverRow = mouseX >= panelX && mouseX <= panelX + PANEL_WIDTH - 22
+                    && mouseY >= rowY && mouseY < rowY + ROW_HEIGHT;
+            if (hoverRow) {
                 ctx.fill(panelX, rowY, panelX + PANEL_WIDTH, rowY + ROW_HEIGHT, 0x33FFFFFF);
             }
 
-            // Button-Hintergrund
-            int btnX = panelX + PANEL_WIDTH - 18;
             boolean hoverBtn = mouseX >= btnX && mouseX <= btnX + 14
                     && mouseY >= rowY + 3 && mouseY < rowY + ROW_HEIGHT - 3;
             ctx.fill(btnX, rowY + 3, btnX + 14, rowY + ROW_HEIGHT - 3,
                     hoverBtn ? 0xAA444444 : 0x66222222);
 
-            // Text NACH allen fills
             ctx.drawText(this.textRenderer, blockName(block),
-                    panelX + 2, rowY + 6, active ? 0x55FF88 : 0xCCCCCC, true);
+                    panelX + 2, rowY + 6, active ? 0xFF55FF88 : 0xFFCCCCCC, true);
             ctx.drawText(this.textRenderer, active ? "-" : "+",
-                    btnX + 4, rowY + 6, active ? 0xFF5555 : 0x55FF55, true);
+                    btnX + 4, rowY + 6, active ? 0xFFFF5555 : 0xFF55FF55, true);
         }
 
-        // 4. Scroll-Hinweis
         if (filtered.size() > visibleRows) {
             String hint = (scrollOffset + visibleRows) + " / " + filtered.size();
             ctx.drawText(this.textRenderer, hint,
-                    (width - this.textRenderer.getWidth(hint)) / 2, height - 8, 0x888888, false);
-        }
+                    (width - this.textRenderer.getWidth(hint)) / 2, height - 8, 0xFF888888, false);        }
     }
-
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
         double mouseX = click.x();

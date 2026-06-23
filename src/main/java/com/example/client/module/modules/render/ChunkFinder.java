@@ -20,21 +20,20 @@ import java.util.Set;
 public class ChunkFinder extends Module {
 
     public static ChunkFinder INSTANCE;
-
-    public final SliderSetting minHeight   = addSetting(new SliderSetting("MinHeight",
-            "Minimale Säulenhöhe um als verdächtig zu gelten", 8, 3, 30));
-    public final SliderSetting chunkRadius = addSetting(new SliderSetting("Radius",
-            "Such-Radius in Chunks", 3, 1, 6));
     public final BoolSetting   showCobble  = addSetting(new BoolSetting("Cobblestone",
             "Cobblestone-Säulen suchen", true));
+    public final ColorSetting  colorCobble = addSetting(new ColorSetting("CobbleColor",
+            "Farbe Cobblestone", new Color(180, 130, 90, 255)));
+    public final SliderSetting minHeight   = addSetting(new SliderSetting("MinHeight",
+            "Minimale Säulenhöhe um als verdächtig zu gelten", 5, 3, 30));
+    public final SliderSetting chunkRadius = addSetting(new SliderSetting("Radius",
+            "Such-Radius in Chunks", 3, 1, 6));
     public final BoolSetting   showDeep    = addSetting(new BoolSetting("Deepslate",
             "Deepslate-Säulen suchen", true));
     public final BoolSetting   showBox     = addSetting(new BoolSetting("Box",
             "Box um Säule zeichnen", true));
     public final BoolSetting   showFill    = addSetting(new BoolSetting("Fill",
             "Box füllen", true));
-    public final ColorSetting  colorCobble = addSetting(new ColorSetting("CobbleColor",
-            "Farbe Cobblestone", new Color(180, 130, 90, 255)));
     public final ColorSetting  colorDeep   = addSetting(new ColorSetting("DeepColor",
             "Farbe Deepslate", new Color(100, 100, 200, 255)));
 
@@ -72,29 +71,15 @@ public class ChunkFinder extends Module {
                         long xzKey = ((long)(x + 30000000)) << 32 | (z + 30000000);
                         if (drawn.contains(xzKey)) continue;
 
-                        int cobbleRun = 0, cobbleTop = -1;
-                        int deepRun   = 0, deepTop   = -1;
+                        int deepRun = 0, deepTop = -1;
 
                         for (int y = worldMaxY - 1; y >= worldMinY; y--) {
                             pos.set(x, y, z);
                             Block block = chunk.getBlockState(pos).getBlock();
 
-                            boolean isCobble = showCobble.getValue() &&
-                                    (block == Blocks.COBBLESTONE || block == Blocks.MOSSY_COBBLESTONE);
                             boolean isDeep = showDeep.getValue() &&
                                     (block == Blocks.DEEPSLATE || block == Blocks.COBBLED_DEEPSLATE
                                             || block == Blocks.POLISHED_DEEPSLATE);
-
-                            if (isCobble) {
-                                if (cobbleRun == 0) cobbleTop = y;
-                                cobbleRun++;
-                            } else {
-                                if (cobbleRun >= minH) {
-                                    drawColumn(ms, vcp, x, cobbleTop - cobbleRun + 1, cobbleTop, z, colorCobble.getValue(), showBox.getValue(), showFill.getValue());
-                                    drawn.add(xzKey);
-                                }
-                                cobbleRun = 0;
-                            }
 
                             if (isDeep) {
                                 if (deepRun == 0) deepTop = y;
@@ -108,10 +93,6 @@ public class ChunkFinder extends Module {
                             }
                         }
 
-                        if (cobbleRun >= minH) {
-                            drawColumn(ms, vcp, x, worldMinY, cobbleTop, z, colorCobble.getValue(), showBox.getValue(), showFill.getValue());
-                            drawn.add(xzKey);
-                        }
                         if (deepRun >= minH) {
                             drawColumn(ms, vcp, x, worldMinY, deepTop, z, colorDeep.getValue(), showBox.getValue(), showFill.getValue());
                             drawn.add(xzKey);
