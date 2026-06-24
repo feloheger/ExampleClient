@@ -1,5 +1,6 @@
 package com.example.client;
 
+import com.example.client.config.ConfigManager;
 import com.example.client.module.Module;
 import com.example.client.module.modules.render.*;
 import com.example.client.module.modules.movement.*;
@@ -9,6 +10,7 @@ import com.example.client.module.modules.gui.ClickGui;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 // ── KORRIGIERTE IMPORTS FÜR 1.21.11 ─────────────────────────────────────
@@ -28,6 +30,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+
+
 
 @Environment(EnvType.CLIENT)
 public class ExampleClientMod implements ClientModInitializer {
@@ -69,12 +73,17 @@ public class ExampleClientMod implements ClientModInitializer {
 
     // ClickGUI Keybind (Standard: RSHIFT)
     private static KeyBinding guiKey;
+    public static KeyBinding toggleKey;
 
 
     @Override
     public void onInitializeClient() {
         LOGGER.info("[ExampleClient] Initialisierung...");
-
+        toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.freecam.toggle",        // Übersetzungs-Key
+                GLFW.GLFW_KEY_F,             // Standard-Taste (F)
+                KeyBinding.Category.create(Identifier.of("category.freecam"))           // Kategorie in den Einstellungen
+        ));
         // Module registrieren
         MODULES.add(playerEsp);
         MODULES.add(mobEsp);
@@ -98,6 +107,32 @@ public class ExampleClientMod implements ClientModInitializer {
         MODULES.add(autoTotem);
         MODULES.add(autoEat);
         MODULES.add(autoMine);
+        // ── Config laden (nachdem alle Module registriert wurden) ──
+        ConfigManager.load(MODULES);
+        LOGGER.info("[ExampleClient] Config geladen.");
+
+// ── Automatisches Speichern beim Schließen des Spiels ───────
+        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+            ConfigManager.save(MODULES);
+            LOGGER.info("[ExampleClient] Config gespeichert (Shutdown).");
+        });
+
+// ── Manuelles Speichern per Keybind ──────────────────────────
+        KeyBinding saveConfigKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.exampleclient.saveconfig",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_UNKNOWN, // Standard: kein Key, Nutzer kann selbst belegen
+                KeyBinding.Category.create(Identifier.of("exampleclient", "savegui"))
+        ));
+
+        ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+            while (saveConfigKey.wasPressed()) {
+                ConfigManager.save(MODULES);
+                if (mc.player != null) {
+                    mc.player.sendMessage(net.minecraft.text.Text.literal("§a[ExampleClient] Config gespeichert."), false);
+                }
+            }
+        });
 
         // ── World-Render-Hook ──────────────────────────────────
         WorldRenderEvents.AFTER_ENTITIES.register((WorldRenderContext context) -> {
@@ -161,7 +196,7 @@ public class ExampleClientMod implements ClientModInitializer {
             }
         });
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (Freecam.toggleKey.wasPressed()) {
+            while (toggleKey.wasPressed()) {
                 Freecam freecam = Freecam.getInstance();
                 if (freecam != null) {
                     if (freecam.isEnabled()) {

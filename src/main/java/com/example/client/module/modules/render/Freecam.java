@@ -16,7 +16,7 @@ public class Freecam extends Module {
     // ---------------------------------------------------------------
     // LOKALER ZUSTAND
     // ---------------------------------------------------------------
-    private static KeyBinding.Category freecamKey = new KeyBinding.Category(Identifier.of("category.freecam"));
+
     private static Freecam instance;
 
     /** Gespeicherte originale Spieler-Position zum Wiederherstellen */
@@ -33,19 +33,12 @@ public class Freecam extends Module {
     /** Verhindert doppelte Tick-Registrierung */
     private boolean tickRegistered = false;
     // In der Klasse:
-    public static KeyBinding toggleKey;
 
     // Im Konstruktor:
     public Freecam() {
         super("Freecam", "Kamera frei durch die Welt bewegen", Category.RENDER);
         instance = this;
 
-        // Keybind registrieren (hier: F als Standard-Taste)
-        toggleKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.freecam.toggle",        // Übersetzungs-Key
-                GLFW.GLFW_KEY_F,             // Standard-Taste (F)
-                freecamKey           // Kategorie in den Einstellungen
-        ));
     }
 
     public static Freecam getInstance() {
