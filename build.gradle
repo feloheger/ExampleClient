@@ -17,7 +17,7 @@ repositories {
 
 dependencies {
 	implementation 'org.json:json:20240303'
-	implementation 'io.github.CDAGaming:DiscordIPC:0.10.2'
+	implementation include('io.github.CDAGaming:DiscordIPC:0.10.2')
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
