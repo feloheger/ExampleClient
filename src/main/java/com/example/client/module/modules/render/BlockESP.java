@@ -15,15 +15,15 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.chunk.WorldChunk;
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class BlockESP extends Module {
 
     public static BlockESP INSTANCE;
 
     private final List<Block> activeBlocks = new ArrayList<>(List.of(
-            Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE, Blocks.DIAMOND_BLOCK,
-            Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE, Blocks.EMERALD_BLOCK,
             Blocks.ANCIENT_DEBRIS, Blocks.NETHERITE_BLOCK
     ));
 
@@ -33,6 +33,10 @@ public class BlockESP extends Module {
     public final BoolSetting      showFill     = addSetting(new BoolSetting("Fill",    "Gefüllte Box zeichnen",   true));
     public final BoolSetting      showTracers  = addSetting(new BoolSetting("Tracers", "Tracer-Linien zeichnen",  true));
     public final ColorSetting     color        = addSetting(new ColorSetting("Color",  "ESP-Farbe",               new Color(0, 200, 100, 255)));
+
+    // Cache für schnelle Lookups - wird nur neu gebaut wenn sich die Liste ändert
+    private Set<Block> targetsCache = new HashSet<>();
+    private int lastListHash = -1;
 
     public BlockESP() {
         super("BlockESP", "Hebt konfigurierbare Blöcke hervor", Category.RENDER);
@@ -47,16 +51,33 @@ public class BlockESP extends Module {
     public void clearBlocks() { activeBlocks.clear(); }
     public List<Block> getSelectedBlocks() { return activeBlocks; }
 
+    /** Gibt das gecachte HashSet zurück, baut es nur neu wenn sich die Liste geändert hat */
+    private Set<Block> getTargetsCached() {
+        List<Block> current = targetBlocks.getValue();
+        int currentHash = current.hashCode();
+        if (currentHash != lastListHash) {
+            targetsCache = new HashSet<>(current);
+            lastListHash = currentHash;
+        }
+        return targetsCache;
+    }
+
     public void render(MatrixStack ms, VertexConsumerProvider vcp, Vec3d camPos) {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.world == null || mc.player == null) return;
+
+        Set<Block> targets = getTargetsCached();
+        if (targets.isEmpty()) return;
 
         Color c  = color.getValue();
         Color f  = new Color(c.getRed(), c.getGreen(), c.getBlue(), 25);
         int   r  = chunkRadius.getValue().intValue();
         ChunkPos cp = mc.player.getChunkPos();
 
-        // Um Objekterzeugung pro Block zu verhindern
+        boolean fill    = showFill.getValue();
+        boolean box     = showBox.getValue();
+        boolean tracers = showTracers.getValue();
+
         BlockPos.Mutable mutablePos = new BlockPos.Mutable();
 
         for (int cx = -r; cx <= r; cx++) {
@@ -76,16 +97,14 @@ public class BlockESP extends Module {
                             mutablePos.set(x, y, z);
                             Block block = chunk.getBlockState(mutablePos).getBlock();
 
-                            if (!targetBlocks.contains(block)) continue;
+                            if (!targets.contains(block)) continue;
 
                             Box bb = new Box(mutablePos);
 
-                            if (showFill.getValue())    RenderUtil.drawFilledBox(ms, vcp, bb, f);
-                            if (showBox.getValue())     RenderUtil.drawBox(ms, vcp, bb, c);
+                            if (fill) RenderUtil.drawFilledBox(ms, vcp, bb, f);
+                            if (box)  RenderUtil.drawBox(ms, vcp, bb, c);
 
-                            // FIX: Tracer-Linie zu jedem einzelnen gefundenen Erz-Block ziehen!
-                            if (showTracers.getValue()) {
-                                // immutable Kopie erstellen, da mutablePos sich ständig ändert
+                            if (tracers) {
                                 BlockPos immutablePos = mutablePos.toImmutable();
                                 RenderUtil.drawTracerToBlock(ms, vcp, immutablePos, c);
                             }
