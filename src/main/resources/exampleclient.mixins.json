@@ -8,7 +8,9 @@
 		"GameRendererMixin",
 		"ClientPlayNetworkHandlerMixin",
 		"ICameraAccessor",
-		"CameraSubmersionMixin"
+		"CameraSubmersionMixin",
+		"PacketLoggerReceiveMixin",
+		"PacketLoggerSendMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

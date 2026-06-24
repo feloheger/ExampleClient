@@ -107,6 +107,7 @@ public class ExampleClientMod implements ClientModInitializer {
         MODULES.add(autoTotem);
         MODULES.add(autoEat);
         MODULES.add(autoMine);
+
         // ── Config laden (nachdem alle Module registriert wurden) ──
         ConfigManager.load(MODULES);
         LOGGER.info("[ExampleClient] Config geladen.");
