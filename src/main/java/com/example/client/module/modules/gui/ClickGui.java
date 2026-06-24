@@ -1,6 +1,7 @@
 package com.example.client.module.modules.gui;
 
 import com.example.client.module.Module;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -19,9 +20,27 @@ public class ClickGui extends Screen {
 
     public ClickGui(List<Module> modules) {
         super(Text.literal("ClickGUI"));
+
+        int screenWidth = MinecraftClient.getInstance().getWindow().getScaledWidth();
+
         int x = PADDING;
+        int y = START_Y;
+        int rowMaxHeight = 0;
+
         for (Module.Category cat : Module.Category.values()) {
-            panels.add(new CategoryPanel(cat, x, START_Y, modules));
+            CategoryPanel panel = new CategoryPanel(cat, x, y, modules);
+
+            // Falls das Panel über den rechten Rand ragen würde,
+            // in die nächste Zeile umbrechen.
+            if (x + PANEL_WIDTH + PADDING > screenWidth) {
+                x = PADDING;
+                y += rowMaxHeight + PADDING;
+                rowMaxHeight = 0;
+                panel = new CategoryPanel(cat, x, y, modules);
+            }
+
+            panels.add(panel);
+            rowMaxHeight = Math.max(rowMaxHeight, panel.getTotalHeight());
             x += PANEL_WIDTH + PADDING;
         }
     }

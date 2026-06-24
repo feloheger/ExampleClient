@@ -6,6 +6,7 @@ import com.example.client.module.modules.render.*;
 import com.example.client.module.modules.movement.*;
 import com.example.client.module.modules.combat.*;
 import com.example.client.module.modules.world.*;
+import com.example.client.module.modules.misc.*;
 import com.example.client.module.modules.gui.ClickGui;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -60,13 +61,16 @@ public class ExampleClientMod implements ClientModInitializer {
     public static final Step   step   = new Step();
     public static final Jesus  jesus  = new Jesus();
     public static final Flight flight = new Flight();
-
+    public static final DiscordRPC discordRpc = new DiscordRPC();
     // ── Combat ─────────────────────────────────────────────────
     public static final AutoTotem autoTotem = new AutoTotem();
     public static final AutoEat   autoEat   = new AutoEat();
 
     // ── World ──────────────────────────────────────────────────
     public static final AutoMine autoMine = new AutoMine();
+
+    // ── Misc ───────────────────────────────────────────────────
+    public static final PacketLogger packetLogger = new PacketLogger();
 
     // Alle Module in einer Liste für die GUI
     public static final List<Module> MODULES = new ArrayList<>();
@@ -107,6 +111,8 @@ public class ExampleClientMod implements ClientModInitializer {
         MODULES.add(autoTotem);
         MODULES.add(autoEat);
         MODULES.add(autoMine);
+        MODULES.add(packetLogger);
+        MODULES.add(discordRpc);
 
         // ── Config laden (nachdem alle Module registriert wurden) ──
         ConfigManager.load(MODULES);
